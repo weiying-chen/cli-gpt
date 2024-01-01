@@ -141,7 +141,9 @@ name = "chat_gpt"
 version = "0.1.0"
 dependencies = [
  "async-openai",
+ "futures",
  "tokio",
+ "tokio-stream",
 ]
 
 [[package]]
