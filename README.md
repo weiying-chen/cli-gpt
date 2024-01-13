@@ -3,7 +3,7 @@
 ChatGPT in the command line or text editors with the command line interfaces
 
 
-![](https://github.com/weiying-chen/chat_gpt/blob/main/demo.gif)
+![](https://github.com/weiying-chen/cli_gpt/blob/main/demo.gif)
 
 ## Note
 
