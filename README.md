@@ -1,9 +1,9 @@
 # CLIGPT
 
-ChatGPT in the command line or text editors with the command line interfaces
+ChatGPT in the command line or text editors with a command line interface
 
 
-![](https://github.com/weiying-chen/cli_gpt/blob/main/demo.gif)
+![](https://github.com/weiying-chen/cli-gpt/blob/main/demo.webp)
 
 ## Note
 
