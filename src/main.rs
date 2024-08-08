@@ -1,7 +1,60 @@
-use async_openai::types::ChatCompletionRequestUserMessageArgs;
-use async_openai::{types::CreateChatCompletionRequestArgs, Client};
+pub mod groq {
+    use reqwest::Client;
+    use serde::Serialize;
+    use std::error::Error;
+
+    pub struct Groq {
+        api_key: String,
+        client: Client,
+    }
+
+    impl Groq {
+        pub fn new(api_key: String) -> Self {
+            Self {
+                api_key,
+                client: Client::new(),
+            }
+        }
+
+        pub async fn send_request(&self, prompt: &str) -> Result<String, Box<dyn Error>> {
+            let request_body = CreateChatCompletionRequest {
+                model: "mixtral-8x7b-32768".to_string(),
+                messages: vec![Message {
+                    role: "user".to_string(),
+                    content: prompt.to_string(),
+                }],
+            };
+
+            let response = self
+                .client
+                .post("https://api.groq.com/openai/v1/chat/completions")
+                .header("Authorization", format!("Bearer {}", self.api_key))
+                .header("Content-Type", "application/json")
+                .json(&request_body)
+                .send()
+                .await?;
+
+            let text = response.text().await?;
+            Ok(text)
+        }
+    }
+
+    #[derive(Serialize)]
+    struct CreateChatCompletionRequest {
+        model: String,
+        messages: Vec<Message>,
+    }
+
+    #[derive(Serialize)]
+    struct Message {
+        role: String,
+        content: String,
+    }
+}
+
 use futures::StreamExt;
-use std::error::Error;
+use groq::Groq;
+use std::{env, error::Error};
 use tokio::io::{self, AsyncBufReadExt};
 use tokio_stream::wrappers::LinesStream;
 
@@ -13,12 +66,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
         return Err("No input provided".into());
     }
 
-    let response = send_request(&prompt).await?;
+    let api_key = env::var("GROQ_API_KEY").expect("GROQ_API_KEY environment variable not set");
+    let groq_client = Groq::new(api_key);
+    let result = groq_client.send_request(&prompt).await;
 
-    for choice in response.choices {
-        if let Some(content) = choice.message.content {
-            println!("{}", content);
-        }
+    match result {
+        Ok(response_text) => println!("{}", response_text),
+        Err(e) => eprintln!("Request failed: {}", e),
     }
 
     Ok(())
@@ -38,23 +92,4 @@ async fn read_input() -> Result<String, io::Error> {
     }
 
     Ok(prompt)
-}
-
-async fn send_request(
-    prompt: &str,
-) -> Result<async_openai::types::CreateChatCompletionResponse, Box<dyn Error>> {
-    let client = Client::new();
-
-    let request = CreateChatCompletionRequestArgs::default()
-        .model("gpt-3.5-turbo")
-        .max_tokens(512u16)
-        .messages([ChatCompletionRequestUserMessageArgs::default()
-            .content(prompt)
-            .build()?
-            .into()])
-        .build()?;
-
-    let response = client.chat().create(request).await?;
-
-    Ok(response)
 }
