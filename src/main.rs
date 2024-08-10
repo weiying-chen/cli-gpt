@@ -43,7 +43,9 @@ pub mod groq {
                 .content
                 .clone();
 
-            Ok(content)
+            let extracted_code = extract_code_block(&content, "jsx");
+
+            Ok(extracted_code)
         }
     }
 
@@ -72,6 +74,21 @@ pub mod groq {
     #[derive(Deserialize)]
     struct MessageContent {
         content: String,
+    }
+
+    fn extract_code_block(content: &str, language: &str) -> String {
+        let start_tag = format!("```{}", language);
+        let end_tag = "```";
+
+        if let Some(start_idx) = content.find(&start_tag) {
+            if let Some(end_idx) = content[start_idx + start_tag.len()..].find(end_tag) {
+                let start = start_idx + start_tag.len();
+                let end = start_idx + start_tag.len() + end_idx;
+                return content[start..end].trim().to_string();
+            }
+        }
+
+        "Code block not found".to_string()
     }
 }
 
