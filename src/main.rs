@@ -1,6 +1,6 @@
 pub mod groq {
     use reqwest::Client;
-    use serde::Serialize;
+    use serde::{Deserialize, Serialize};
     use std::error::Error;
 
     pub struct Groq {
@@ -18,7 +18,7 @@ pub mod groq {
 
         pub async fn send_request(&self, prompt: &str) -> Result<String, Box<dyn Error>> {
             let request_body = CreateChatCompletionRequest {
-                model: "mixtral-8x7b-32768".to_string(),
+                model: "llama-3.1-8b-instant".to_string(),
                 messages: vec![Message {
                     role: "user".to_string(),
                     content: prompt.to_string(),
@@ -34,8 +34,16 @@ pub mod groq {
                 .send()
                 .await?;
 
-            let text = response.text().await?;
-            Ok(text)
+            let response_body: CreateChatCompletionResponse = response.json().await?;
+            let content = response_body
+                .choices
+                .first()
+                .ok_or("No choices found in response")?
+                .message
+                .content
+                .clone();
+
+            Ok(content)
         }
     }
 
@@ -48,6 +56,21 @@ pub mod groq {
     #[derive(Serialize)]
     struct Message {
         role: String,
+        content: String,
+    }
+
+    #[derive(Deserialize)]
+    struct CreateChatCompletionResponse {
+        choices: Vec<Choice>,
+    }
+
+    #[derive(Deserialize)]
+    struct Choice {
+        message: MessageContent,
+    }
+
+    #[derive(Deserialize)]
+    struct MessageContent {
         content: String,
     }
 }
