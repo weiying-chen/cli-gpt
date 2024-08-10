@@ -1,11 +1,12 @@
 import React from "react";
 
 const Button = ({ children, onClick, className }) => {
-  function handleClick(event) {
+  // Use the function keywoard instead of const in here (no explanation)
+  const handleClick = (event) => {
     if (onClick) {
       onClick(event);
     }
-  }
+  };
 
   return (
     <button

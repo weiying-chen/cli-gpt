@@ -88,9 +88,15 @@ pub mod groq {
             let remaining_content = &content[start_idx + start_tag.len()..];
             let remaining_content_trimmed = remaining_content.trim_start();
 
-            // If there's a language tag (e.g., "javascript"), skip it
+            // Check if there's a language tag (e.g., "javascript")
             let first_newline = remaining_content_trimmed.find('\n').unwrap_or(0);
-            let code_start_idx = start_idx + start_tag.len() + first_newline;
+            let code_start_idx = if first_newline > 0
+                && remaining_content_trimmed[..first_newline].contains(|c: char| !c.is_whitespace())
+            {
+                start_idx + start_tag.len() + first_newline + 1
+            } else {
+                start_idx + start_tag.len()
+            };
 
             if let Some(end_idx) = content[code_start_idx..].find(end_tag) {
                 let start = code_start_idx;
