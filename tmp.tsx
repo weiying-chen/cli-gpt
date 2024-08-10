@@ -1,19 +1,20 @@
 import React from "react";
 
-const Button = ({ children, onClick, className }) => {
-  // Use the function keywoard instead of const in here (no explanation)
-  const handleClick = (event) => {
+// Use the function keyword instead of const to define this Button component:
+const Button = ({ children, onClick, className, icon }) => {
+  function handleClick(event) {
     if (onClick) {
       onClick(event);
     }
-  };
+  }
 
   return (
     <button
       className={`${className} button`}
       onClick={handleClick}
-      type="button"
+      type="submit"
     >
+      <span className="icon">{icon}</span>
       {children}
     </button>
   );
