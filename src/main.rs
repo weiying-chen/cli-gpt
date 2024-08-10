@@ -17,6 +17,9 @@ pub mod groq {
         }
 
         pub async fn send_request(&self, prompt: &str) -> Result<String, Box<dyn Error>> {
+            // Capture the original indentation level
+            let original_indentation = get_original_indentation(prompt);
+
             let request_body = CreateChatCompletionRequest {
                 model: "llama-3.1-8b-instant".to_string(),
                 messages: vec![Message {
@@ -44,8 +47,9 @@ pub mod groq {
                 .clone();
 
             let extracted_code = extract_code_block(&content);
+            let reindented_code = apply_indentation(&extracted_code, original_indentation);
 
-            Ok(extracted_code)
+            Ok(reindented_code)
         }
     }
 
@@ -96,6 +100,23 @@ pub mod groq {
         }
 
         "Code block not found".to_string()
+    }
+
+    fn get_original_indentation(prompt: &str) -> usize {
+        prompt
+            .lines()
+            .filter(|line| !line.trim().is_empty())
+            .map(|line| line.chars().take_while(|c| c.is_whitespace()).count())
+            .min()
+            .unwrap_or(0)
+    }
+
+    fn apply_indentation(code: &str, indentation: usize) -> String {
+        let indent_str = " ".repeat(indentation);
+        code.lines()
+            .map(|line| format!("{}{}", indent_str, line))
+            .collect::<Vec<String>>()
+            .join("\n")
     }
 }
 

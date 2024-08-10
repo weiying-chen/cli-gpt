@@ -1,11 +1,11 @@
 import React from "react";
 
 const Button = ({ children, onClick, className }) => {
-  const handleClick = (event) => {
+  function handleClick(event) {
     if (onClick) {
       onClick(event);
     }
-  };
+  }
 
   return (
     <button
