@@ -43,7 +43,7 @@ pub mod groq {
                 .content
                 .clone();
 
-            let extracted_code = extract_code_block(&content, "jsx");
+            let extracted_code = extract_code_block(&content);
 
             Ok(extracted_code)
         }
@@ -76,15 +76,22 @@ pub mod groq {
         content: String,
     }
 
-    fn extract_code_block(content: &str, language: &str) -> String {
-        let start_tag = format!("```{}", language);
+    fn extract_code_block(content: &str) -> String {
+        let start_tag = "```";
         let end_tag = "```";
 
-        if let Some(start_idx) = content.find(&start_tag) {
-            if let Some(end_idx) = content[start_idx + start_tag.len()..].find(end_tag) {
-                let start = start_idx + start_tag.len();
-                let end = start_idx + start_tag.len() + end_idx;
-                return content[start..end].trim().to_string();
+        if let Some(start_idx) = content.find(start_tag) {
+            let remaining_content = &content[start_idx + start_tag.len()..];
+            let remaining_content_trimmed = remaining_content.trim_start();
+
+            // If there's a language tag (e.g., "javascript"), skip it
+            let first_newline = remaining_content_trimmed.find('\n').unwrap_or(0);
+            let code_start_idx = start_idx + start_tag.len() + first_newline;
+
+            if let Some(end_idx) = content[code_start_idx..].find(end_tag) {
+                let start = code_start_idx;
+                let end = code_start_idx + end_idx;
+                return content[start..end].to_string();
             }
         }
 
